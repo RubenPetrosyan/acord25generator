@@ -149,6 +149,10 @@
     "type": "text",
     "pdf_fields": ["WorkersCompensationEmployersLiability_InsurerLetterCode_A"]
   },
+  "policies.workers_comp.wc_statutory": {
+    "type": "checkbox",
+    "pdf_fields": ["WorkersCompensationEmployersLiability_WorkersCompensationStatutoryLimitIndicator_A"]
+  },
   "policies.workers_comp.policy_number": {
     "type": "text",
     "pdf_fields": ["Policy_WorkersCompensationAndEmployersLiability_PolicyNumberIdentifier_A"]
@@ -160,6 +164,18 @@
   "policies.workers_comp.expiration_date": {
     "type": "text",
     "pdf_fields": ["Policy_WorkersCompensationAndEmployersLiability_ExpirationDate_A"]
+  },
+  "policies.workers_comp.each_accident": {
+    "type": "text",
+    "pdf_fields": ["WorkersCompensationEmployersLiability_EmployersLiability_EachAccidentLimitAmount_A"]
+  },
+  "policies.workers_comp.disease_policy_limit": {
+    "type": "text",
+    "pdf_fields": ["WorkersCompensationEmployersLiability_EmployersLiability_DiseasePolicyLimitAmount_A"]
+  },
+  "policies.workers_comp.disease_each_employee": {
+    "type": "text",
+    "pdf_fields": ["WorkersCompensationEmployersLiability_EmployersLiability_DiseaseEachEmployeeLimitAmount_A"]
   },
 
   "certificate.description_of_operations": {
