@@ -11,7 +11,8 @@
     "next": "16.0.10",
     "pdf-lib": "^1.17.1",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "acord25generator": "file:./acord25generator"
   },
   "devDependencies": {
     "@tailwindcss/postcss7-compat": "^2.2.17",
@@ -19,14 +20,8 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18"
   },
-   "resolutions": {
+  "resolutions": {
     "acord25generator": "file:./acord25generator"
-  },  
-   "dependencies":
-  {
-  "name": "acord25generator",
-  "version": "1.0.0",
-  "type": "module"
   }
 }
 
