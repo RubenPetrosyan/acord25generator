@@ -1,14 +1,14 @@
 {
-  "name": "certfiller",
+  "name": "acord25generator",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
-    "acord25generator": "file:./acord25generator",
     "next": "16.0.10",
     "pdf-lib": "^1.17.1",
     "react": "19.2.3",
@@ -18,8 +18,5 @@
     "autoprefixer": "^10.4.23",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18"
-  },
-  "resolutions": {
-    "acord25generator": "file:./acord25generator"
   }
 }
