@@ -3,30 +3,51 @@ import { useState } from "react";
 
 const emptyAddress = { line1: "", city: "", state: "", zip: "" };
 
-function Checkbox({ label, checked, onChange }) {
+/* ── Tiny reusable primitives ───────────────────── */
+
+function Field({ label, children }) {
   return (
-    <label className="flex items-center gap-2">
+    <div className="field">
+      <span className="field-label">{label}</span>
+      {children}
+    </div>
+  );
+}
+
+function CheckItem({ label, checked, onChange }) {
+  return (
+    <label className="check-item">
       <input
         type="checkbox"
         checked={checked}
         onChange={e => onChange(e.target.checked)}
       />
-      <span>{label}</span>
+      {label}
     </label>
   );
 }
 
+function InsurerSelect({ value, onChange }) {
+  return (
+    <div className="insurer-select">
+      <span>Insurer</span>
+      <select value={value} onChange={e => onChange(e.target.value)}>
+        {["A", "B", "C", "D", "E", "F"].map(l => (
+          <option key={l} value={l}>{l}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+/* ── Main form ──────────────────────────────────── */
+
 export default function Acord25Form({ onSubmit, loading }) {
   const [form, setForm] = useState({
-    form: {
-      date: new Date().toISOString().split("T")[0]
-    },
+    form: { date: new Date().toISOString().split("T")[0] },
 
     producer: {
-      name: "",
-      phone: "",
-      fax: "",
-      email: "",
+      name: "", phone: "", fax: "", email: "",
       address: { ...emptyAddress }
     },
 
@@ -35,72 +56,41 @@ export default function Acord25Form({ onSubmit, loading }) {
       address: { ...emptyAddress }
     },
 
-    insurers: ["A","B","C","D","E","F"].map(letter => ({
-      letter,
-      name: "",
-      naic: ""
+    insurers: ["A", "B", "C", "D", "E", "F"].map(letter => ({
+      letter, name: "", naic: ""
     })),
 
     policies: {
       general_liability: {
         insurer_letter: "A",
-        occurrence: true,
-        claims_made: false,
-        policy_number: "",
-        effective_date: "",
-        expiration_date: "",
+        occurrence: true, claims_made: false,
+        policy_number: "", effective_date: "", expiration_date: "",
         limits: {
-          each_occurrence: "",
-          damage_to_rented: "",
-          medical_expense: "",
-          personal_adv: "",
-          general_aggregate: "",
-          products_completed: ""
+          each_occurrence: "", damage_to_rented: "", medical_expense: "",
+          personal_adv: "", general_aggregate: "", products_completed: ""
         }
       },
-
       auto_liability: {
         insurer_letter: "A",
-        any_auto: true,
-        owned_autos: false,
-        hired_autos: false,
-        non_owned_autos: false,
-        policy_number: "",
-        effective_date: "",
-        expiration_date: "",
+        any_auto: true, owned_autos: false, hired_autos: false, non_owned_autos: false,
+        policy_number: "", effective_date: "", expiration_date: "",
         combined_single_limit: ""
       },
-
       workers_comp: {
         insurer_letter: "A",
-        wc_statutory: true,
-        excluded: false,
-        policy_number: "",
-        effective_date: "",
-        expiration_date: "",
-        each_accident: "",
-        disease_policy_limit: "",
-        disease_each_employee: ""
+        wc_statutory: true, excluded: false,
+        policy_number: "", effective_date: "", expiration_date: "",
+        each_accident: "", disease_policy_limit: "", disease_each_employee: ""
       }
     },
 
-    endorsements: {
-      additional_insured: false,
-      waiver_of_subrogation: false
-    },
+    endorsements: { additional_insured: false, waiver_of_subrogation: false },
 
-    certificate: {
-      description_of_operations: ""
-    },
+    certificate: { description_of_operations: "" },
 
-    certificate_holder: {
-      name: "",
-      address: { ...emptyAddress }
-    },
+    certificate_holder: { name: "", address: { ...emptyAddress } },
 
-    signature: {
-      authorized_representative: ""
-    }
+    signature: { authorized_representative: "" }
   });
 
   function getValue(path) {
@@ -121,204 +111,279 @@ export default function Acord25Form({ onSubmit, loading }) {
     if (!loading) onSubmit(form);
   }
 
-  // Controlled insurer letter select — reads current value from state
-  const insurerSelect = path => (
-    <select
+  const txt = (path, placeholder = "") => (
+    <input
       className="input"
-      value={getValue(path)}
+      placeholder={placeholder}
+      value={getValue(path) ?? ""}
       onChange={e => update(path, e.target.value)}
-    >
-      {["A","B","C","D","E","F"].map(l => (
-        <option key={l} value={l}>{l}</option>
-      ))}
-    </select>
+    />
+  );
+
+  const dateInput = (path) => (
+    <input
+      className="input"
+      type="date"
+      value={getValue(path) ?? ""}
+      onChange={e => update(path, e.target.value)}
+    />
+  );
+
+  const policyRow = (base) => (
+    <div className="grid-3" style={{ marginTop: "0.5rem" }}>
+      <Field label="Policy Number">{txt(`${base}.policy_number`)}</Field>
+      <Field label="Effective Date">{dateInput(`${base}.effective_date`)}</Field>
+      <Field label="Expiration Date">{dateInput(`${base}.expiration_date`)}</Field>
+    </div>
   );
 
   return (
-    <form onSubmit={submit} className="space-y-10">
+    <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
 
       {/* PRODUCER */}
-      <section className="section">
-        <h2 className="section-title">Producer</h2>
-        <div className="grid-2">
-          <input className="input" placeholder="Name" value={form.producer.name} onChange={e=>update("producer.name",e.target.value)} />
-          <input className="input" placeholder="Phone" value={form.producer.phone} onChange={e=>update("producer.phone",e.target.value)} />
-          <input className="input" placeholder="Fax" value={form.producer.fax} onChange={e=>update("producer.fax",e.target.value)} />
-          <input className="input" placeholder="Email" value={form.producer.email} onChange={e=>update("producer.email",e.target.value)} />
-          <input className="input" placeholder="Address" value={form.producer.address.line1} onChange={e=>update("producer.address.line1",e.target.value)} />
-          <input className="input" placeholder="City" value={form.producer.address.city} onChange={e=>update("producer.address.city",e.target.value)} />
-          <input className="input" placeholder="State" value={form.producer.address.state} onChange={e=>update("producer.address.state",e.target.value)} />
-          <input className="input" placeholder="ZIP" value={form.producer.address.zip} onChange={e=>update("producer.address.zip",e.target.value)} />
+      <div className="section">
+        <div className="section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Producer
         </div>
-      </section>
+        <div className="grid-3">
+          <Field label="Name">{txt("producer.name")}</Field>
+          <Field label="Phone">{txt("producer.phone")}</Field>
+          <Field label="Fax">{txt("producer.fax")}</Field>
+          <Field label="Email">{txt("producer.email")}</Field>
+          <Field label="Address">{txt("producer.address.line1")}</Field>
+          <Field label="City">{txt("producer.address.city")}</Field>
+          <Field label="State">{txt("producer.address.state", "e.g. CA")}</Field>
+          <Field label="ZIP">{txt("producer.address.zip")}</Field>
+          <Field label="Date">
+            <input
+              className="input"
+              type="date"
+              value={getValue("form.date") ?? ""}
+              onChange={e => update("form.date", e.target.value)}
+            />
+          </Field>
+        </div>
+      </div>
 
       {/* INSURED */}
-      <section className="section">
-        <h2 className="section-title">Insured</h2>
-        <div className="grid-2">
-          <input className="input" placeholder="Name" value={form.insured.name} onChange={e=>update("insured.name",e.target.value)} />
-          <input className="input" placeholder="Address" value={form.insured.address.line1} onChange={e=>update("insured.address.line1",e.target.value)} />
-          <input className="input" placeholder="City" value={form.insured.address.city} onChange={e=>update("insured.address.city",e.target.value)} />
-          <input className="input" placeholder="State" value={form.insured.address.state} onChange={e=>update("insured.address.state",e.target.value)} />
-          <input className="input" placeholder="ZIP" value={form.insured.address.zip} onChange={e=>update("insured.address.zip",e.target.value)} />
+      <div className="section">
+        <div className="section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Insured
         </div>
-      </section>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <Field label="Name">{txt("insured.name")}</Field>
+          <div className="grid-4">
+            <Field label="Address">{txt("insured.address.line1")}</Field>
+            <Field label="City">{txt("insured.address.city")}</Field>
+            <Field label="State">{txt("insured.address.state", "CA")}</Field>
+            <Field label="ZIP">{txt("insured.address.zip")}</Field>
+          </div>
+        </div>
+      </div>
 
       {/* INSURERS */}
-      <section className="section">
-        <h2 className="section-title">Insurers</h2>
-        <div className="grid-2">
-          {form.insurers.map((ins,i)=>(
-            <div key={ins.letter}>
-              <strong>Insurer {ins.letter}</strong>
-              <input className="input" placeholder="Name" value={ins.name} onChange={e=>update(`insurers.${i}.name`,e.target.value)} />
-              <input className="input" placeholder="NAIC" value={ins.naic} onChange={e=>update(`insurers.${i}.naic`,e.target.value)} />
+      <div className="section">
+        <div className="section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Insurers
+        </div>
+        <div className="grid-3">
+          {form.insurers.map((ins, i) => (
+            <div key={ins.letter} style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+              <span className="field-label">Insurer {ins.letter}</span>
+              <input className="input" placeholder="Company name" value={ins.name}
+                onChange={e => update(`insurers.${i}.name`, e.target.value)} />
+              <input className="input" placeholder="NAIC #" value={ins.naic}
+                onChange={e => update(`insurers.${i}.naic`, e.target.value)} />
             </div>
           ))}
         </div>
-      </section>
+      </div>
 
       {/* GENERAL LIABILITY */}
-      <section className="section">
-        <h2 className="section-title">General Liability</h2>
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <span>Insurer</span> {insurerSelect("policies.general_liability.insurer_letter")}
-          </div>
-          <div className="flex gap-4">
-            <Checkbox label="Occurrence" checked={form.policies.general_liability.occurrence}
-              onChange={v=>update("policies.general_liability.occurrence",v)} />
-            <Checkbox label="Claims-Made" checked={form.policies.general_liability.claims_made}
-              onChange={v=>update("policies.general_liability.claims_made",v)} />
-          </div>
-          <div className="grid-2">
-            <input className="input" placeholder="Policy Number" value={form.policies.general_liability.policy_number} onChange={e=>update("policies.general_liability.policy_number",e.target.value)} />
-            <input className="input" type="date" placeholder="Effective Date" value={form.policies.general_liability.effective_date} onChange={e=>update("policies.general_liability.effective_date",e.target.value)} />
-            <input className="input" type="date" placeholder="Expiration Date" value={form.policies.general_liability.expiration_date} onChange={e=>update("policies.general_liability.expiration_date",e.target.value)} />
-          </div>
-          <h3 className="font-semibold mt-2">Limits</h3>
-          <div className="grid-2">
-            <input className="input" placeholder="Each Occurrence" value={form.policies.general_liability.limits.each_occurrence} onChange={e=>update("policies.general_liability.limits.each_occurrence",e.target.value)} />
-            <input className="input" placeholder="Damage to Rented Premises" value={form.policies.general_liability.limits.damage_to_rented} onChange={e=>update("policies.general_liability.limits.damage_to_rented",e.target.value)} />
-            <input className="input" placeholder="Medical Expense" value={form.policies.general_liability.limits.medical_expense} onChange={e=>update("policies.general_liability.limits.medical_expense",e.target.value)} />
-            <input className="input" placeholder="Personal & Adv Injury" value={form.policies.general_liability.limits.personal_adv} onChange={e=>update("policies.general_liability.limits.personal_adv",e.target.value)} />
-            <input className="input" placeholder="General Aggregate" value={form.policies.general_liability.limits.general_aggregate} onChange={e=>update("policies.general_liability.limits.general_aggregate",e.target.value)} />
-            <input className="input" placeholder="Products – Completed Ops Aggregate" value={form.policies.general_liability.limits.products_completed} onChange={e=>update("policies.general_liability.limits.products_completed",e.target.value)} />
+      <div className="section">
+        <div className="section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          General Liability
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
+          <InsurerSelect value={form.policies.general_liability.insurer_letter}
+            onChange={v => update("policies.general_liability.insurer_letter", v)} />
+          <div className="check-row">
+            <CheckItem label="Occurrence" checked={form.policies.general_liability.occurrence}
+              onChange={v => update("policies.general_liability.occurrence", v)} />
+            <CheckItem label="Claims-Made" checked={form.policies.general_liability.claims_made}
+              onChange={v => update("policies.general_liability.claims_made", v)} />
           </div>
         </div>
-      </section>
+        {policyRow("policies.general_liability")}
+        <p className="sub-heading">Limits</p>
+        <div className="grid-3">
+          <Field label="Each Occurrence">{txt("policies.general_liability.limits.each_occurrence", "$")}</Field>
+          <Field label="Damage to Rented Premises">{txt("policies.general_liability.limits.damage_to_rented", "$")}</Field>
+          <Field label="Medical Expense">{txt("policies.general_liability.limits.medical_expense", "$")}</Field>
+          <Field label="Personal & Adv Injury">{txt("policies.general_liability.limits.personal_adv", "$")}</Field>
+          <Field label="General Aggregate">{txt("policies.general_liability.limits.general_aggregate", "$")}</Field>
+          <Field label="Products – Completed Ops">{txt("policies.general_liability.limits.products_completed", "$")}</Field>
+        </div>
+      </div>
 
       {/* AUTO LIABILITY */}
-      <section className="section">
-        <h2 className="section-title">Automobile Liability</h2>
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <span>Insurer</span> {insurerSelect("policies.auto_liability.insurer_letter")}
-          </div>
-          <div className="flex flex-wrap gap-4">
-            <Checkbox label="Any Auto" checked={form.policies.auto_liability.any_auto}
-              onChange={v=>update("policies.auto_liability.any_auto",v)} />
-            <Checkbox label="Owned Autos" checked={form.policies.auto_liability.owned_autos}
-              onChange={v=>update("policies.auto_liability.owned_autos",v)} />
-            <Checkbox label="Hired Autos" checked={form.policies.auto_liability.hired_autos}
-              onChange={v=>update("policies.auto_liability.hired_autos",v)} />
-            <Checkbox label="Non-Owned Autos" checked={form.policies.auto_liability.non_owned_autos}
-              onChange={v=>update("policies.auto_liability.non_owned_autos",v)} />
-          </div>
-          <div className="grid-2">
-            <input className="input" placeholder="Policy Number" value={form.policies.auto_liability.policy_number} onChange={e=>update("policies.auto_liability.policy_number",e.target.value)} />
-            <input className="input" type="date" placeholder="Effective Date" value={form.policies.auto_liability.effective_date} onChange={e=>update("policies.auto_liability.effective_date",e.target.value)} />
-            <input className="input" type="date" placeholder="Expiration Date" value={form.policies.auto_liability.expiration_date} onChange={e=>update("policies.auto_liability.expiration_date",e.target.value)} />
-            <input className="input" placeholder="Combined Single Limit" value={form.policies.auto_liability.combined_single_limit} onChange={e=>update("policies.auto_liability.combined_single_limit",e.target.value)} />
+      <div className="section">
+        <div className="section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          Automobile Liability
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
+          <InsurerSelect value={form.policies.auto_liability.insurer_letter}
+            onChange={v => update("policies.auto_liability.insurer_letter", v)} />
+          <div className="check-row">
+            <CheckItem label="Any Auto" checked={form.policies.auto_liability.any_auto}
+              onChange={v => update("policies.auto_liability.any_auto", v)} />
+            <CheckItem label="Owned Autos" checked={form.policies.auto_liability.owned_autos}
+              onChange={v => update("policies.auto_liability.owned_autos", v)} />
+            <CheckItem label="Hired Autos" checked={form.policies.auto_liability.hired_autos}
+              onChange={v => update("policies.auto_liability.hired_autos", v)} />
+            <CheckItem label="Non-Owned Autos" checked={form.policies.auto_liability.non_owned_autos}
+              onChange={v => update("policies.auto_liability.non_owned_autos", v)} />
           </div>
         </div>
-      </section>
+        {policyRow("policies.auto_liability")}
+        <div className="grid-3" style={{ marginTop: "0.5rem" }}>
+          <Field label="Combined Single Limit">{txt("policies.auto_liability.combined_single_limit", "$")}</Field>
+        </div>
+      </div>
 
       {/* WORKERS COMP */}
-      <section className="section">
-        <h2 className="section-title">Workers Compensation</h2>
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <span>Insurer</span> {insurerSelect("policies.workers_comp.insurer_letter")}
-          </div>
-          <div className="flex gap-4">
-            <Checkbox label="WC Statutory" checked={form.policies.workers_comp.wc_statutory}
-              onChange={v=>update("policies.workers_comp.wc_statutory",v)} />
-            <Checkbox label="Any Persons Excluded" checked={form.policies.workers_comp.excluded}
-              onChange={v=>update("policies.workers_comp.excluded",v)} />
-          </div>
-          <div className="grid-2">
-            <input className="input" placeholder="Policy Number" value={form.policies.workers_comp.policy_number} onChange={e=>update("policies.workers_comp.policy_number",e.target.value)} />
-            <input className="input" type="date" placeholder="Effective Date" value={form.policies.workers_comp.effective_date} onChange={e=>update("policies.workers_comp.effective_date",e.target.value)} />
-            <input className="input" type="date" placeholder="Expiration Date" value={form.policies.workers_comp.expiration_date} onChange={e=>update("policies.workers_comp.expiration_date",e.target.value)} />
-          </div>
-          <h3 className="font-semibold mt-2">Employers Liability Limits</h3>
-          <div className="grid-2">
-            <input className="input" placeholder="Each Accident" value={form.policies.workers_comp.each_accident} onChange={e=>update("policies.workers_comp.each_accident",e.target.value)} />
-            <input className="input" placeholder="Disease – Policy Limit" value={form.policies.workers_comp.disease_policy_limit} onChange={e=>update("policies.workers_comp.disease_policy_limit",e.target.value)} />
-            <input className="input" placeholder="Disease – Each Employee" value={form.policies.workers_comp.disease_each_employee} onChange={e=>update("policies.workers_comp.disease_each_employee",e.target.value)} />
+      <div className="section">
+        <div className="section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Workers Compensation
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
+          <InsurerSelect value={form.policies.workers_comp.insurer_letter}
+            onChange={v => update("policies.workers_comp.insurer_letter", v)} />
+          <div className="check-row">
+            <CheckItem label="WC Statutory" checked={form.policies.workers_comp.wc_statutory}
+              onChange={v => update("policies.workers_comp.wc_statutory", v)} />
+            <CheckItem label="Any Persons Excluded" checked={form.policies.workers_comp.excluded}
+              onChange={v => update("policies.workers_comp.excluded", v)} />
           </div>
         </div>
-      </section>
+        {policyRow("policies.workers_comp")}
+        <p className="sub-heading">Employers Liability Limits</p>
+        <div className="grid-3">
+          <Field label="Each Accident">{txt("policies.workers_comp.each_accident", "$")}</Field>
+          <Field label="Disease – Policy Limit">{txt("policies.workers_comp.disease_policy_limit", "$")}</Field>
+          <Field label="Disease – Each Employee">{txt("policies.workers_comp.disease_each_employee", "$")}</Field>
+        </div>
+      </div>
 
       {/* ENDORSEMENTS */}
-      <section className="section">
-        <h2 className="section-title">Endorsements</h2>
-        <Checkbox label="Additional Insured" checked={form.endorsements.additional_insured}
-          onChange={v=>update("endorsements.additional_insured",v)} />
-        <Checkbox label="Waiver of Subrogation" checked={form.endorsements.waiver_of_subrogation}
-          onChange={v=>update("endorsements.waiver_of_subrogation",v)} />
-      </section>
+      <div className="section">
+        <div className="section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Endorsements
+        </div>
+        <div className="check-row">
+          <CheckItem label="Additional Insured" checked={form.endorsements.additional_insured}
+            onChange={v => update("endorsements.additional_insured", v)} />
+          <CheckItem label="Waiver of Subrogation" checked={form.endorsements.waiver_of_subrogation}
+            onChange={v => update("endorsements.waiver_of_subrogation", v)} />
+        </div>
+      </div>
 
       {/* DESCRIPTION OF OPERATIONS */}
-      <section className="section">
-        <h2 className="section-title">Description of Operations / Locations / Vehicles</h2>
-        <textarea
-          className="input w-full"
-          rows={4}
-          placeholder="Description of operations, locations, vehicles, exclusions added by endorsement, special provisions…"
-          value={form.certificate.description_of_operations}
-          onChange={e=>update("certificate.description_of_operations",e.target.value)}
-        />
-      </section>
-
-      {/* CERTIFICATE HOLDER */}
-      <section className="section">
-        <h2 className="section-title">Certificate Holder</h2>
-        <div className="grid-2">
-          <input className="input" placeholder="Name" value={form.certificate_holder.name} onChange={e=>update("certificate_holder.name",e.target.value)} />
-          <input className="input" placeholder="Address" value={form.certificate_holder.address.line1} onChange={e=>update("certificate_holder.address.line1",e.target.value)} />
-          <input className="input" placeholder="City" value={form.certificate_holder.address.city} onChange={e=>update("certificate_holder.address.city",e.target.value)} />
-          <input className="input" placeholder="State" value={form.certificate_holder.address.state} onChange={e=>update("certificate_holder.address.state",e.target.value)} />
-          <input className="input" placeholder="ZIP" value={form.certificate_holder.address.zip} onChange={e=>update("certificate_holder.address.zip",e.target.value)} />
+      <div className="section">
+        <div className="section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Description of Operations / Locations / Vehicles
         </div>
-      </section>
-
-      {/* SIGNATURE */}
-      <section className="section">
-        <h2 className="section-title">Signature</h2>
-        <input className="input" placeholder="Authorized Representative" value={form.signature.authorized_representative}
-          onChange={e=>update("signature.authorized_representative",e.target.value)} />
-      </section>
-
-      {/* SUBMIT */}
-      <div className="flex flex-col items-center gap-3">
-        <button
-          type="submit"
-          disabled={loading}
-          className={`px-8 py-3 rounded-lg text-white font-semibold ${
-            loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-          }`}
-        >
-          {loading ? "Generating PDF…" : "Generate ACORD 25 PDF"}
-        </button>
-
-        {loading && (
-          <div className="text-sm text-gray-600">
-            Please wait, this may take a few seconds…
-          </div>
-        )}
+        <textarea
+          className="input"
+          rows={3}
+          placeholder="Operations, locations, vehicles, exclusions added by endorsement, special provisions…"
+          value={form.certificate.description_of_operations}
+          onChange={e => update("certificate.description_of_operations", e.target.value)}
+        />
       </div>
+
+      {/* CERTIFICATE HOLDER + SIGNATURE — side by side */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.875rem" }}
+           className="cert-bottom-grid">
+
+        <div className="section">
+          <div className="section-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            Certificate Holder
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            <Field label="Name">{txt("certificate_holder.name")}</Field>
+            <Field label="Address">{txt("certificate_holder.address.line1")}</Field>
+            <div className="grid-3">
+              <Field label="City">{txt("certificate_holder.address.city")}</Field>
+              <Field label="State">{txt("certificate_holder.address.state", "CA")}</Field>
+              <Field label="ZIP">{txt("certificate_holder.address.zip")}</Field>
+            </div>
+          </div>
+        </div>
+
+        <div className="section" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          <div>
+            <div className="section-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              Authorized Representative
+            </div>
+            <Field label="Signature / Name">{txt("signature.authorized_representative")}</Field>
+          </div>
+          <div style={{ marginTop: "1.25rem" }}>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                width: "100%",
+                padding: "0.65rem 1rem",
+                background: loading ? "#94a3b8" : "linear-gradient(135deg,#6366f1 0%,#4f46e5 100%)",
+                color: "#fff",
+                fontSize: "0.9rem",
+                fontWeight: "700",
+                borderRadius: "10px",
+                border: "none",
+                cursor: loading ? "not-allowed" : "pointer",
+                boxShadow: loading ? "none" : "0 4px 14px rgba(99,102,241,0.35)",
+              }}
+            >
+              {loading ? (
+                <>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "spin 1s linear infinite" }}>
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                  </svg>
+                  Generating…
+                </>
+              ) : (
+                <>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  Generate ACORD 25 PDF
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 640px) {
+          .cert-bottom-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
 
     </form>
   );
