@@ -64,7 +64,8 @@ function doGet(e) {
 
   for (const row of data) {
     const rowName = String(row[COL_INSURED_NAME] || "").toLowerCase();
-    if (!insuredName || rowName.includes(insuredName)) {
+    // Empty insuredName = return ALL rows (used by token/certholder search)
+    if (insuredName === "" || rowName.includes(insuredName)) {
       let formData = {};
       try { formData = JSON.parse(row[COL_FORM_JSON]); } catch {}
       results.push({
